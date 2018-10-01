@@ -7,7 +7,12 @@ import {
   TouchableHighlight
 } from 'react-native';
 
-import {getDecks} from '../utils/api'
+import {getDecks} from '../utils/api';
+
+import {
+  clearLocalNotification,
+  setLocalNotification
+} from '../utils/helpers';
 
 export default class DeckDetailsScreen extends React.Component {
   static navigationOptions = {
@@ -44,6 +49,7 @@ export default class DeckDetailsScreen extends React.Component {
     count: count,
   });
  }
+
   onStartQuiz = ()=>{
     const { navigation} = this.props;
     const { title,count} = this.state;
@@ -51,6 +57,9 @@ export default class DeckDetailsScreen extends React.Component {
       title: title,
       count: count,
     });
+
+    clearLocalNotification()
+      .then(setLocalNotification)
  }
 
   render() {

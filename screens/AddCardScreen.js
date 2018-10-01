@@ -67,7 +67,7 @@ export default class AddCardScreen extends React.Component {
             placeholderTextColor="#c2c2c2"
             />
           <TouchableHighlight style={styles.submitbutton} onPress={this.onSubmit}>
-            <Text style={styles.submitbuttontext}>SUBMIT</Text>
+            <Text style={styles.submitbuttontext}>Submit</Text>
           </TouchableHighlight>
       </KeyboardAvoidingView>
     );
@@ -95,7 +95,10 @@ const styles = StyleSheet.create({
       color: '#0000ff',
       backgroundColor: "#ffffff",
       fontSize: 24,
-      margin:'1%'
+      margin:'1%',
+      borderColor: "#000000",
+      borderWidth: 1,
+      borderRadius: 10,
   },
   buttons: {
       width: '50%',
