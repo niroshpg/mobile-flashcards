@@ -1,4 +1,11 @@
 # mobile-flashcards
+Project Overview
+----------------
+This is a mobile application (Android / iOS ) that allows users to study collections of flashcards. The app will allow users to create different categories of flashcards called "decks", add flashcards to those decks, then take quizzes on those decks.
+
+Why this project?
+-----------------
+This project encompasses the fundamental aspects of building a native application including handling infinite lists, routing, and user input. This demonstrates understanding of how to use React Native to build an iOS and Android application.
 
 How to run:
 -----------
