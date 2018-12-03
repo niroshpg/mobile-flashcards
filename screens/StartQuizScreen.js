@@ -33,7 +33,7 @@ export default class StartQuizScreen extends React.Component {
   componentDidMount (){
     getDecks().then(
       (results)=>{
-        let title = this.state.title;
+        let {title} = this.state;
         this.setState({
           questions: results[title].questions,
         })
@@ -53,7 +53,7 @@ export default class StartQuizScreen extends React.Component {
   }
 
   onCorrectPressed = () => {
-     const questions = this.state.questions;
+     const {questions} = this.state;
      questions[this.state.index]= {
         ...questions[this.state.index],
        correct : true,
@@ -77,7 +77,7 @@ export default class StartQuizScreen extends React.Component {
   }
 
   onIncorrectPressed = () => {
-    const questions = this.state.questions;
+    const {questions} = this.state;
     questions[this.state.index] = {
       ...questions[this.state.index],
       correct : false,
@@ -103,6 +103,20 @@ export default class StartQuizScreen extends React.Component {
       this.props.navigation.navigate('DeckDetails',{})
   }
 
+  onRestart = () => {
+    this.setState({
+      showAnswer : false,
+      showSummary: false,
+      index: 0,
+    })
+
+    this.props.navigation.navigate('StartQuiz',{
+      title: this.state.title,
+      count: this.state.questions.length,
+    });
+
+  }
+
   render() {
     const {showAnswer,showSummary,index,questions} = this.state;
     let correct = questions.reduce((count,question)=>{
@@ -122,7 +136,11 @@ export default class StartQuizScreen extends React.Component {
           <View style={styles.summary}>
             <Text style={styles.resultstext}>SCORE: {((correct / total)*100).toFixed(2)} % </Text>
             <TouchableHighlight style={styles.donebutton} onPress={this.onComplete}>
-              <Text style={styles.donebuttontext}>Done</Text>
+              <Text style={styles.donebuttontext}>Back to deck</Text>
+            </TouchableHighlight>
+
+            <TouchableHighlight style={styles.donebutton} onPress={this.onRestart}>
+              <Text style={styles.donebuttontext}>Restart Quiz</Text>
             </TouchableHighlight>
           </View >
           :(

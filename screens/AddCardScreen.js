@@ -1,16 +1,19 @@
 import React from 'react';
 import {
   KeyboardAvoidingView,
-  View,
   Text,
   TextInput,
   StyleSheet,
   TouchableHighlight
 } from 'react-native';
 
-import {addCardToDeck} from '../utils/api'
+import { connect } from 'react-redux'
 
-export default class AddCardScreen extends React.Component {
+import { v4 } from 'uuid';
+
+import {addCardAndUpdate} from '../actions';
+
+class AddCardScreen extends React.Component {
 
   static navigationOptions = {
       title: 'AddCard',
@@ -38,14 +41,26 @@ export default class AddCardScreen extends React.Component {
 
   onSubmit = () => {
         const {deckTitle,question,answer} = this.state;
-        addCardToDeck({
-            deckId: deckTitle,
-            card: {
-                  question: question,
-                  answer: answer,
-            },
+        // debugger
+        // addCardToDeck({
+        //     id: v4(),
+        //     title: deckTitle,
+        //     card: {
+        //           question: question,
+        //           answer: answer,
+        //     },
+        //   }
+        // );
+
+        this.props.dispatch(addCardAndUpdate({
+          deck:{
+            title: deckTitle,
+          },
+          card: {
+                question: question,
+                answer: answer,
           }
-        );
+        }));
         this.props.navigation.navigate('DeckDetails',{})
   }
 
@@ -56,14 +71,14 @@ export default class AddCardScreen extends React.Component {
           style={styles.textinput}
           onChangeText={this.onQuestionChanged}
           value={this.state.question}
-          placeholder={'enter the quetion here'}
+          placeholder='enter the quetion here'
           placeholderTextColor="#c2c2c2"
           />
           <TextInput
             style={styles.textinput}
             onChangeText={this.onAnswerChanged}
             value={this.state.answer}
-            placeholder={'enter the answer here'}
+            placeholder='enter the answer here'
             placeholderTextColor="#c2c2c2"
             />
           <TouchableHighlight style={styles.submitbutton} onPress={this.onSubmit}>
@@ -124,3 +139,5 @@ const styles = StyleSheet.create({
       borderRadius: 10,
     }
 });
+
+export default connect()(AddCardScreen)

@@ -1,15 +1,18 @@
 import React from 'react';
 import {
-  View,
+  KeyboardAvoidingView,
   Text,
   StyleSheet,
   TextInput,
   TouchableHighlight
 } from 'react-native';
 
-import {saveDeckTitle} from '../utils/api'
+import { connect } from 'react-redux'
 
-export default class NewDeckScreen extends React.Component {
+import {saveDeckTitle} from '../utils/api';
+import {addDeckAndUpdate} from '../actions';
+
+class NewDeckScreen extends React.Component {
 
   constructor(props) {
       super(props);
@@ -22,16 +25,23 @@ export default class NewDeckScreen extends React.Component {
   }
 
   onSubmit = () => {
-    const {title} = this.state;
-    saveDeckTitle({
+    const {title} = this.state
+    if(!title) {
+      return alert("title is required")
+    }
+    this.setState({title: ''})
+    this.props.dispatch(addDeckAndUpdate({
       title: title,
-    });
-
-    this.props.navigation.navigate('Decks',{})
+      questions: [],
+    }));
+    this.props.navigation.navigate('DeckDetails',{
+    title: title,
+    count: 0,
+  });
   }
   render() {
     return (
-      <View style={styles.container}>
+      <KeyboardAvoidingView style={styles.container} behavior="padding" enabled >
         <Text style={styles.titletext}>What is the title of your new deck?</Text>
           <TextInput
             style={styles.textinput}
@@ -43,7 +53,7 @@ export default class NewDeckScreen extends React.Component {
           <TouchableHighlight style={styles.submitbutton} onPress={this.onSubmit}>
             <Text style={styles.submitbuttontext}>Submit</Text>
           </TouchableHighlight>
-      </View>
+      </KeyboardAvoidingView >
 
     );
   }
@@ -110,3 +120,5 @@ const styles = StyleSheet.create({
       borderRadius: 10,
     }
 });
+
+export default connect()(NewDeckScreen)

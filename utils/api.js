@@ -3,7 +3,6 @@ import { AsyncStorage } from 'react-native'
 export const DECKS_STORAGE_KEY = 'MobileFlashcards:decks';
 
 function setDummyData () {
-
   let dummyData = {
         React: {
           title: 'React',
@@ -28,8 +27,6 @@ function setDummyData () {
           ]
         }
       }
-
-
   AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(dummyData))
 
   return dummyData
@@ -42,34 +39,75 @@ function formatDeckResults (results) {
 }
 
 export function getDecks() {
-  return AsyncStorage.getItem(DECKS_STORAGE_KEY).then(formatDeckResults)
+  /**
+    To clear the storage delete all decks:
+    deleteDecks();
+    - for development
+   */
+  return AsyncStorage.getItem(DECKS_STORAGE_KEY).then(formatDeckResults);
 }
 
-export function getDeck(deckId) {
+export function getDeck(title) {
+
   return AsyncStorage.getItem(DECKS_STORAGE_KEY)
     .then( (decks)=>{
-      const data = JSON.parse(results);
-      return data[deckId];
+      return  JSON.parse(decks)[title];;
+    })
+    .catch((e) => {
+        alert("Failed to load the deck");
+        console.log(e);
     })
 }
 
-export function saveDeckTitle({title}) {
+export function saveDeckTitle(deck) {
   return AsyncStorage.getItem(DECKS_STORAGE_KEY)
     .then((results) => {
       const data = JSON.parse(results);
-      data[title]= {
-        title: title,
-        questions : [],
+      data[deck.title]= {
+      ...deck
       };
       AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(data))
+    }).catch((e) => {
+        alert("Failed to save deck title ");
+        console.log(e);
     })
 }
 
-export function addCardToDeck({deckId,card}) {
+export function deleteDecks() {
+  return AsyncStorage.removeItem(DECKS_STORAGE_KEY);
+}
+
+export function deleteDeckTitle({title}) {
   return AsyncStorage.getItem(DECKS_STORAGE_KEY)
     .then((results) => {
       const data = JSON.parse(results);
-      data[deckId].questions.push(card);
+      data[title]= undefined;
+      delete data[title];
       AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(data))
+    }).catch((e) => {
+        alert("Failed to delete the deck");
+        console.log(e);
+    })
+}
+
+export  function   addCardToDeck({title,card}) {
+    return AsyncStorage.getItem(DECKS_STORAGE_KEY)
+      .then( (decks)=>{
+        const data = JSON.parse(decks);
+        data[title].questions.push(card);
+        AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(data));
+        return data;
+      })
+}
+
+export function removeCardFromDeck({deckId,cardId}) {
+  return AsyncStorage.getItem(DECKS_STORAGE_KEY)
+    .then((results) => {
+      const data = JSON.parse(results);
+      data[deckId].questions = data[deckId].questions.filter((q)=>{q.id!=cardId})
+      AsyncStorage.setItem(DECKS_STORAGE_KEY, JSON.stringify(data))
+    }).catch((e) => {
+        alert("Failed to remove card from the deck");
+        console.log(e);
     })
 }
