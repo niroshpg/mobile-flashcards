@@ -1,9 +1,7 @@
 import React from 'react';
-import {createBottomTabNavigator,createStackNavigator} from 'react-navigation';
-import {
-  Animated,
-  Easing
-} from 'react-native'
+import { Entypo } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import DecksScreen from '../screens/DecksScreen';
 import DeckDetailsScreen from '../screens/DeckDetailsScreen';
@@ -11,59 +9,75 @@ import NewDeckScreen from '../screens/NewDeckScreen';
 import AddCardScreen from '../screens/AddCardScreen';
 import StartQuizScreen from '../screens/StartQuizScreen';
 
-const transitionConfig = () => {
-  return {
-    transitionSpec: {
-      duration: 750,
-      easing: Easing.out(Easing.poly(4)),
-      timing: Animated.timing,
-      useNativeDriver: true,
-    },
-    screenInterpolator: sceneProps => {
-      const { layout, position, scene } = sceneProps
+const ACCENT = '#2EC4B6';
 
-      const thisSceneIndex = scene.index
-      const width = layout.initWidth
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-      const translateX = position.interpolate({
-        inputRange: [thisSceneIndex - 1, thisSceneIndex],
-        outputRange: [width, 0],
-      })
+const headerOptions = {
+  headerStyle: { backgroundColor: ACCENT },
+  headerTintColor: '#f0f0f0',
+  headerTitleStyle: { color: '#f0f0f0' },
+};
 
-      return { transform: [ { translateX } ] }
-    },
-  }
+function DecksStack() {
+  return (
+    <Stack.Navigator initialRouteName="Decks" screenOptions={headerOptions}>
+      <Stack.Screen
+        name="Decks"
+        component={DecksScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DeckDetails"
+        component={DeckDetailsScreen}
+        options={{ title: 'Deck' }}
+      />
+      <Stack.Screen
+        name="AddCard"
+        component={AddCardScreen}
+        options={{ title: 'Add Card' }}
+      />
+      <Stack.Screen
+        name="StartQuiz"
+        component={StartQuizScreen}
+        options={{ title: 'Quiz' }}
+      />
+    </Stack.Navigator>
+  );
 }
 
-const DecksStack = createStackNavigator({
-  Decks: { screen: DecksScreen },
-  DeckDetails: { screen: DeckDetailsScreen },
-  AddCard: { screen: AddCardScreen },
-  StartQuiz: { screen: StartQuizScreen },
-},{
-  initialRouteName: 'Decks',
-  transitionConfig,
-});
-
-
-
-export default createBottomTabNavigator({
-  Decks: {
-    screen: DecksStack,
-  },
-  NewDeck: {
-    screen: NewDeckScreen,
-  }
-}, {
-  tabBarPosition: 'top',
-  swipeEnabled: true,
-  tabBarOptions: {
-    activeTintColor: '#f2f2f2',
-    activeBackgroundColor: "#2EC4B6",
-    inactiveTintColor: '#666',
-    labelStyle: {
-      fontSize: 22,
-      padding: 12
-    }
-  }
-});
+export default function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: '#f2f2f2',
+        tabBarActiveBackgroundColor: ACCENT,
+        tabBarInactiveTintColor: '#666',
+        tabBarLabelStyle: { fontSize: 14 },
+      }}
+    >
+      <Tab.Screen
+        name="DecksTab"
+        component={DecksStack}
+        options={{
+          title: 'Decks',
+          tabBarIcon: ({ color, size }) => (
+            <Entypo name="folder" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="NewDeck"
+        component={NewDeckScreen}
+        options={{
+          title: 'New Deck',
+          tabBarIcon: ({ color, size }) => (
+            <Entypo name="plus" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}

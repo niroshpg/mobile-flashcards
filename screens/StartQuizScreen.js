@@ -1,183 +1,113 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableHighlight
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableHighlight } from 'react-native';
 
-import {getDecks} from '../utils/api'
+import { getDecks } from '../utils/api';
 
-export default class StartQuizScreen extends React.Component {
+export default function StartQuizScreen({ navigation, route }) {
+  const title = route.params?.title ?? '';
 
-  static navigationOptions = {
-      title: 'Quiz',
-      headerStyle: { backgroundColor: '#2EC4B6' },
-      headerTitleStyle: { color: '#f0f0f0' },
-    };
+  const [questions, setQuestions] = useState([]);
+  const [index, setIndex] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [correct, setCorrect] = useState(0);
 
-  constructor(props) {
-      super(props);
-      this.state = {
-        showAnswer: false,
-        showSummary: false,
-        index: 0,
-        title: this.props.navigation.getParam('title',''),
-        questions:[
-          'question':'',
-          'answer': ''
-        ],
-      };
-  }
-
-  componentDidMount (){
-    getDecks().then(
-      (results)=>{
-        let {title} = this.state;
-        this.setState({
-          questions: results[title].questions,
-        })
-    });
-  }
-
-  onShowAnswerPressed = () => {
-      this.setState({
-        showAnswer : true
-      })
-  }
-
-  onShowQuestionPressed = () => {
-      this.setState(() => ({
-        showAnswer: false
-      }))
-  }
-
-  onCorrectPressed = () => {
-     const {questions} = this.state;
-     questions[this.state.index]= {
-        ...questions[this.state.index],
-       correct : true,
-     };
-
-      this.setState((state) => {
-          return {
-            questions,
-            index: state.index + 1,
-
-          }
-        }
-      );
-      let completed = (this.state.index +1 > this.state.questions.length-1);
-
-      if(completed){
-        this.setState(() => ({
-          showSummary: true
-        }))
+  useEffect(() => {
+    let active = true;
+    getDecks().then((results) => {
+      if (active && results[title]) {
+        setQuestions(results[title].questions || []);
       }
-  }
-
-  onIncorrectPressed = () => {
-    const {questions} = this.state;
-    questions[this.state.index] = {
-      ...questions[this.state.index],
-      correct : false,
+    });
+    return () => {
+      active = false;
     };
+  }, [title]);
 
-     this.setState((state) => {
-         return {
-           questions,
-           index: state.index + 1,
+  const total = questions.length;
 
-         }
-       }
-     );
-    let completed = (this.state.index +1 > this.state.questions.length-1);
-    if(completed){
-      this.setState(() => ({
-        showSummary: true
-      }))
+  const answerCard = (wasCorrect) => {
+    if (wasCorrect) {
+      setCorrect((c) => c + 1);
     }
-  }
+    if (index + 1 >= total) {
+      setShowSummary(true);
+    } else {
+      setIndex(index + 1);
+      setShowAnswer(false);
+    }
+  };
 
-  onComplete = () => {
-      this.props.navigation.navigate('DeckDetails',{})
-  }
+  const restart = () => {
+    setQuestions((q) => q);
+    setIndex(0);
+    setShowAnswer(false);
+    setShowSummary(false);
+    setCorrect(0);
+  };
 
-  onRestart = () => {
-    this.setState({
-      showAnswer : false,
-      showSummary: false,
-      index: 0,
-    })
-
-    this.props.navigation.navigate('StartQuiz',{
-      title: this.state.title,
-      count: this.state.questions.length,
-    });
-
-  }
-
-  render() {
-    const {showAnswer,showSummary,index,questions} = this.state;
-    let correct = questions.reduce((count,question)=>{
-      if(question.correct === true ){
-        count = count + 1;
-      }
-      return count;
-    },0);
-    let total = questions.length;
-    let attempts = index +1 < questions.length ? index + 1 : questions.length;
-
+  if (total === 0) {
     return (
       <View style={styles.container}>
-
-        {
-          (showSummary) ?
-          <View style={styles.summary}>
-            <Text style={styles.resultstext}>SCORE: {((correct / total)*100).toFixed(2)} % </Text>
-            <TouchableHighlight style={styles.donebutton} onPress={this.onComplete}>
-              <Text style={styles.donebuttontext}>Back to deck</Text>
-            </TouchableHighlight>
-
-            <TouchableHighlight style={styles.donebutton} onPress={this.onRestart}>
-              <Text style={styles.donebuttontext}>Restart Quiz</Text>
-            </TouchableHighlight>
-          </View >
-          :(
-              (!showAnswer) ?
-              <View style={styles.qna}>
-                <Text style={styles.scoretext}>{attempts}/{total}</Text>
-              <Text style={styles.qnatext}>{questions[index].question}</Text>
-              <TouchableHighlight style={styles.buttons} onPress={this.onShowAnswerPressed}>
-                <Text style={styles.qnatoggletext}>Answer</Text>
-              </TouchableHighlight>
-              </View >
-            :
-            <View style={styles.qna}>
-              <Text style={styles.scoretext}>{attempts}/{total}</Text>
-              <Text style={styles.qnatext}>{questions[index].answer}</Text>
-              <TouchableHighlight style={styles.buttons} onPress={this.onShowQuestionPressed}>
-                <Text style={styles.qnatoggletext}>Question</Text>
-              </TouchableHighlight>
-            </View >
-          )
-        }
-        {
-          !showSummary &&
-            <TouchableHighlight style={styles.buttons} onPress={this.onCorrectPressed}>
-              <Text style={styles.correctbuttontext}>Correct</Text>
-            </TouchableHighlight>
-        }
-        {
-          !showSummary &&
-          <TouchableHighlight style={styles.buttons} onPress={this.onIncorrectPressed}>
-            <Text style={styles.incorrectbuttontext}>Incorrect</Text>
-          </TouchableHighlight>
-        }
+        <Text style={styles.qnatext}>This deck has no cards yet.</Text>
       </View>
     );
   }
 
+  if (showSummary) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.summary}>
+          <Text style={styles.resultstext}>
+            SCORE: {((correct / total) * 100).toFixed(2)} %
+          </Text>
+          <TouchableHighlight
+            style={styles.donebutton}
+            onPress={() => navigation.navigate('DeckDetails', { title })}
+          >
+            <Text style={styles.donebuttontext}>Back to deck</Text>
+          </TouchableHighlight>
+          <TouchableHighlight style={styles.donebutton} onPress={restart}>
+            <Text style={styles.donebuttontext}>Restart Quiz</Text>
+          </TouchableHighlight>
+        </View>
+      </View>
+    );
+  }
+
+  const card = questions[index];
+  const attempts = index + 1;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.qna}>
+        <Text style={styles.scoretext}>
+          {attempts}/{total}
+        </Text>
+        <Text style={styles.qnatext}>
+          {showAnswer ? card.answer : card.question}
+        </Text>
+        <TouchableHighlight
+          style={styles.buttons}
+          onPress={() => setShowAnswer((s) => !s)}
+        >
+          <Text style={styles.qnatoggletext}>
+            {showAnswer ? 'Question' : 'Answer'}
+          </Text>
+        </TouchableHighlight>
+      </View>
+
+      <TouchableHighlight style={styles.buttons} onPress={() => answerCard(true)}>
+        <Text style={styles.correctbuttontext}>Correct</Text>
+      </TouchableHighlight>
+      <TouchableHighlight
+        style={styles.buttons}
+        onPress={() => answerCard(false)}
+      >
+        <Text style={styles.incorrectbuttontext}>Incorrect</Text>
+      </TouchableHighlight>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -185,13 +115,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    backgroundColor:  '#f2f2f2',
-
+    backgroundColor: '#f2f2f2',
   },
   qna: {
     alignItems: 'center',
     justifyContent: 'center',
-
     backgroundColor: '#f2f2f2',
     width: '90%',
     padding: '2%',
@@ -202,77 +130,66 @@ const styles = StyleSheet.create({
     width: '90%',
     padding: '2%',
   },
-  buttontext: {
-    width: '90%',
-    padding: '2%',
-    color: '#f2f2f2',
-    backgroundColor: "#ffffff",
-    fontSize: 20,
-    margin:'1%'
-  },
   scoretext: {
-    marginTop: 0,
     width: '90%',
     padding: '2%',
-    color:   "#2EC4B6",
+    color: '#2EC4B6',
     backgroundColor: '#f2f2f2',
     fontSize: 32,
-    margin:'1%',
-    textAlign: 'left'
+    margin: '1%',
+    textAlign: 'left',
   },
   resultstext: {
-    marginTop: 0,
     width: '90%',
     padding: '2%',
-    color:   "#2EC4B6",
+    color: '#2EC4B6',
     backgroundColor: '#f2f2f2',
     fontSize: 36,
-    margin:'1%',
-    textAlign: 'center'
+    margin: '1%',
+    textAlign: 'center',
   },
   qnatext: {
-    marginTop: 0,
     width: '90%',
     padding: '2%',
-    color:   "#2EC4B6",
+    color: '#2EC4B6',
     backgroundColor: '#f2f2f2',
     fontSize: 48,
-    margin:'1%',
-    textAlign: 'center'
+    margin: '1%',
+    textAlign: 'center',
   },
   qnatoggletext: {
     width: '90%',
-    color:   "#99320d",
+    color: '#99320d',
     backgroundColor: '#f2f2f2',
     fontSize: 24,
-    margin:'1%',
-    textAlign: 'center'
+    margin: '1%',
+    textAlign: 'center',
   },
   buttons: {
     width: '80%',
     padding: '2%',
     backgroundColor: '#f2f2f2',
-    margin:'1%',
+    margin: '1%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   correctbuttontext: {
     width: '70%',
     padding: '2%',
-    color:   "#f2f2f2",
+    color: '#f2f2f2',
     backgroundColor: '#208030',
-    margin:'1%',
+    margin: '1%',
     fontSize: 36,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   incorrectbuttontext: {
     width: '70%',
     padding: '2%',
-    color:   "#f2f2f2",
+    color: '#f2f2f2',
     backgroundColor: '#cc3a20',
-    margin:'1%',
+    margin: '1%',
     fontSize: 36,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   donebuttontext: {
     width: '90%',
@@ -281,14 +198,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#2EC4B6',
     textAlign: 'center',
     fontSize: 32,
-    margin:'1%',
+    margin: '1%',
   },
   donebutton: {
     width: '50%',
-    backgroundColor: "#2EC4B6",
-    margin:'1%',
-    borderColor: "#000000",
+    backgroundColor: '#2EC4B6',
+    margin: '1%',
+    borderColor: '#000000',
     borderWidth: 1,
     borderRadius: 10,
-  }
+  },
 });

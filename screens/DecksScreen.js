@@ -1,107 +1,66 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { View, StyleSheet, FlatList } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Alert
-} from 'react-native';
+import { getDecks, deleteDeckTitle } from '../utils/api';
+import { addDeck, removeDeck } from '../actions';
+import DeckSummary from '../components/DeckSummary';
 
-import { connect } from 'react-redux'
-
-import {getDecks,deleteDeckTitle} from '../utils/api'
-import {addDeck,removeDeck} from '../actions';
-
-import DeckSummary from '../components/DeckSummary'
-
-class DecksScreen extends React.Component {
-  static navigationOptions = {
-    title: 'Decks',
-    header: null,
-  };
-
-  constructor(props) {
-      super(props);
-      this.state = {
-        refreshDecks: false,
-      };
-      this.removeItem.bind(this);
-      this.renderItem.bind(this);
-  }
-
-  componentDidMount (){
-
-    getDecks().then(
-      (results)=> {
-        Object.keys(results).map((key)=>{
-          this.props.dispatch(addDeck({
-              ...results[key],
-          }))
-        });
-    });
-  }
-
-  renderItem = ({ item}) => {
-    const count = Array.isArray(item.questions)?item.questions.length:0;
-    return <DeckSummary title={item.title}
-         count={count}
-         navigation={this.props.navigation}
-         removeItem={this.removeItem}/>
-
-  }
-
-
-
-  removeItem = (title)=>{
-
-    const {refreshDecks} = this.state;
-    this.props.dispatch(removeDeck({
-      title: title,
-    }))
-    deleteDeckTitle({
-        title: title,
-      }
-    );
-
-  }
-
-
-
-  render() {
-      const {decks} = this.props;
-      const {navigate} = this.props.navigation;
-      const deck_arr = Object.keys(decks).map((key)=>{
-
-        return decks[key]
-      }).filter(Boolean);
-    return (
-      <View style={styles.container}>
-          <FlatList style={styles.flatlist}
-            data={deck_arr}
-            renderItem={this.renderItem}
-            extraData={this.props.decks}
-            keyExtractor={(item, index) => index.toString()}
-          />
-      </View>
-    );
-  }
-
+function selectDecks(state) {
+  return Object.keys(state)
+    .map((key) => state[key])
+    .filter(Boolean);
 }
 
-// Alert.alert(
-//     `Adding ${key}`,
-//     'Adding ... ?',
-//     [
-//       { text: 'Cancel', onPress: () => {
-//
-//       }, style: 'cancel' },
-//       { text: 'OK', onPress: () => {
-//
-//       }},
-//     ],
-//     { cancelable: false }
-//   )
+export default function DecksScreen({ navigation }) {
+  const dispatch = useDispatch();
+  const decks = useSelector(selectDecks);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      getDecks().then((results) => {
+        if (!active) return;
+        Object.keys(results).forEach((key) => {
+          dispatch(addDeck({ ...results[key] }));
+        });
+      });
+      return () => {
+        active = false;
+      };
+    }, [dispatch])
+  );
+
+  const removeItem = (title) => {
+    dispatch(removeDeck({ title }));
+    deleteDeckTitle({ title });
+  };
+
+  const renderItem = ({ item }) => {
+    const count = Array.isArray(item.questions) ? item.questions.length : 0;
+    return (
+      <DeckSummary
+        title={item.title}
+        count={count}
+        navigation={navigation}
+        removeItem={removeItem}
+      />
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        style={styles.flatlist}
+        data={decks}
+        renderItem={renderItem}
+        extraData={decks}
+        keyExtractor={(item) => item.title}
+      />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -110,30 +69,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f0f0f0',
-      width: '100%',
+    width: '100%',
   },
   flatlist: {
     width: '90%',
     marginLeft: '1%',
     marginRight: '1%',
-  }
+  },
 });
-
-function isEmpty(obj) {
-    for(var key in obj) {
-        if(obj.hasOwnProperty(key))
-            return false;
-    }
-    return true;
-}
-
-function mapStateToProps (decks){
-
-  return {
-    decks: isEmpty(decks) ? []: Object.keys(decks).map(key => decks[key]).filter(Boolean),
-  }
-}
-
-export default connect(
-  mapStateToProps
-)(DecksScreen)

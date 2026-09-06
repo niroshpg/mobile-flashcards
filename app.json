@@ -1,27 +1,29 @@
 {
   "expo": {
-    "name": "mobile-flashcards",
-    "description": "This project is really great.",
+    "name": "Mobile Flashcards",
     "slug": "mobile-flashcards",
-    "privacy": "public",
-    "sdkVersion": "30.0.0",
-    "platforms": ["ios", "android"],
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "scheme": "mobileflashcards",
+    "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
-    }
+      "supportsTablet": true,
+      "bundleIdentifier": "com.niroshpg.mobileflashcards"
+    },
+    "android": {
+      "package": "com.niroshpg.mobileflashcards",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
+    },
+    "plugins": [
+      "expo-notifications",
+      "expo-font"
+    ]
   }
 }
